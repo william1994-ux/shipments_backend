@@ -1,0 +1,103 @@
+"A date string with format `Y-m-d`, e.g. `2011-05-23`."
+scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
+
+"A datetime string with format `Y-m-d H:i:s`, e.g. `2018-05-23 13:43:32`."
+scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
+
+type Mutation {
+
+  login(email: String!, password: String!): User!
+
+  logout: User @guard
+
+  me: User @auth
+
+
+  createUser(
+    name: String!
+    email: String! @rules(apply: ["email", "unique:users"])
+    password: String! @bcrypt @rules(apply: ["min:6"])
+  ): User @create
+
+  createShipment(
+    name: String!, 
+    address: String!,
+    phone: String!, 
+    user_id: Int!
+  ): Shipment@create
+
+  updateUser(
+    id: Int!
+    name: String!
+    email: String! @rules(apply: ["email", "unique:users"])
+    password: String! @bcrypt @rules(apply: ["min:6"])
+  ): User @update
+
+  updateShipment(
+    id: Int!
+    name: String!, 
+    address: String!,
+    phone: String!
+  ): Shipment@update
+
+  deleteUser(
+    id: Int!
+  ): User @delete
+
+  deleteShipment(
+    id: Int!
+  ): Shipment@delete
+
+  createWaybill(
+    from: String!, 
+    to: String!,
+    price: String!, 
+    shipment_id: Int!
+  ): Waybill@create
+  updateWaybill(
+    id: Int!
+    from: String!, 
+    to: String!,
+    price: String!
+  ): Waybill@update
+  deleteWaybill(
+    id: Int!
+  ): Waybill@delete
+
+}
+
+type Query {
+    users: [User!]! @paginate(defaultCount: 10)
+    user(id: ID @eq): User @find
+    shipments: [Shipment!]! @all
+    shipment(id: Int! @eq): Shipment @find
+}
+
+type User {
+    id: ID!
+    name: String!
+    email: String!
+    created_at: DateTime!
+    updated_at: DateTime!
+    shipments: [Shipment!]! @hasMany
+}
+
+type Shipment {
+  id: ID!
+  name: String!
+  address: String!
+  phone: String!
+  author: User! @belongsTo
+  related: [Waybill!]! @hasOne
+}
+
+type Waybill {
+  id: ID!
+  from: String!
+  to: String!
+  price: String!
+  shipment_id: Shipment! @belongsTo
+}
+
+
+
